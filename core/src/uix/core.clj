@@ -175,18 +175,26 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#useeffect"
   ([f]
-   (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f nil))
+   (if (uix.lib/cljs-env? &env)
+     (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f nil)
+     `(~f)))
   ([f deps]
-   (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f deps)))
+   (if (uix.lib/cljs-env? &env)
+     (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f deps)
+     `(~f))))
 
 (defmacro use-layout-effect
   "Takes a function to be executed in a layout effect and optional vector of dependencies.
 
   See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
   ([f]
-   (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f nil))
+   (if (uix.lib/cljs-env? &env)
+     (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f nil)
+     `(~f)))
   ([f deps]
-   (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)))
+   (if (uix.lib/cljs-env? &env)
+     (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)
+     `(~f))))
 
 (defmacro use-insertion-effect
   "Takes a function to be executed synchronously before all DOM mutations
@@ -195,23 +203,31 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#useinsertioneffect"
   ([f]
-   (make-hook-with-deps 'uix.hooks.alpha/use-insertion-effect &env &form f nil))
+   (if (uix.lib/cljs-env? &env)
+     (make-hook-with-deps 'uix.hooks.alpha/use-insertion-effect &env &form f nil)
+     `(~f)))
   ([f deps]
-   (make-hook-with-deps 'uix.hooks.alpha/use-insertion-effect &env &form f deps)))
+   (if (uix.lib/cljs-env? &env)
+     (make-hook-with-deps 'uix.hooks.alpha/use-insertion-effect &env &form f deps)
+     `(~f))))
 
 (defmacro use-memo
   "Takes function f and required vector of dependencies, and returns memoized result of f.
 
    See: https://reactjs.org/docs/hooks-reference.html#usememo"
   [f deps]
-  (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps))
+  (if (uix.lib/cljs-env? &env)
+    (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps)
+    `(~f)))
 
 (defmacro use-callback
   "Takes function f and required vector of dependencies, and returns memoized f.
 
   See: https://reactjs.org/docs/hooks-reference.html#usecallback"
   [f deps]
-  (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps))
+  (if (uix.lib/cljs-env? &env)
+    (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps)
+    f))
 
 (defmacro use-imperative-handle
   "Customizes the instance value that is exposed to parent components when using ref.
@@ -223,3 +239,40 @@
   ([ref f deps]
    (uix.linter/lint-exhaustive-deps! &env &form f deps)
    `(uix.hooks.alpha/use-imperative-handle ~ref ~f ~(vector->js-array deps))))
+
+(defmacro use-ref
+  "Takes optional initial value and returns React's ref hook wrapped in atom-like type."
+  ([]
+   `(uix.core/use-ref nil))
+  ([v]
+   (if (uix.lib/cljs-env? &env)
+     `(uix.core/use-ref ~v)
+     `(clojure.core/atom ~v))))
+
+(defmacro use-state
+  "Takes initial value or a function that computes it and returns a stateful value,
+  and a function to update it.
+
+  See: https://reactjs.org/docs/hooks-reference.html#usestate"
+  [initial-value]
+  (if (uix.lib/cljs-env? &env)
+    `(uix.core/use-state ~initial-value)
+    [~initial-value identity]))
+
+(defmacro use-deferred-value [value]
+  (if (uix.lib/cljs-env? &env)
+    `(uix.core/use-deferred-value ~value)
+    value))
+
+(defmacro memo
+  "Takes component `f` and optional comparator function `should-update?`
+  that takes previous and next props of the component.
+
+  Returns memoized `f`.
+
+  When `should-update?` is not provided uses default comparator
+  that compares props with clojure.core/="
+  [f]
+  (if (uix.lib/cljs-env? &env)
+    `(uix.core/memo ~f)
+    `(clojure.core/memoize ~f)))
