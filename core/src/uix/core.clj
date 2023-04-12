@@ -170,6 +170,8 @@
     `(~sym ~f ~(vector->js-array deps))
     `(~sym ~f)))
 
+;; TODO: use-*-effects shouldn't actually run on the JVM
+
 (defmacro use-effect
   "Takes a function to be executed in an effect and optional vector of dependencies.
 
@@ -268,11 +270,11 @@
   "Takes component `f` and optional comparator function `should-update?`
   that takes previous and next props of the component.
 
-  Returns memoized `f`.
+  Returns memoized `f` in cljs, returns `f` in clj.
 
   When `should-update?` is not provided uses default comparator
   that compares props with clojure.core/="
   [f]
   (if (uix.lib/cljs-env? &env)
     `(uix.core/memo ~f)
-    `(clojure.core/memoize ~f)))
+    ~f))
